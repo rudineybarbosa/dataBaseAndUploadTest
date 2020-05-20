@@ -1,12 +1,15 @@
 import { Router } from 'express';
+
 import AppError from '../errors/AppError';
 
-// import TransactionsRepository from '../repositories/TransactionsRepository';
-// import CreateTransactionService from '../services/CreateTransactionService';
+import TransactionsRepository from '../repositories/TransactionsRepository';
+import CreateTransactionService from '../services/CreateTransactionService';
+import Transaction from '../models/Transaction';
 // import DeleteTransactionService from '../services/DeleteTransactionService';
 // import ImportTransactionsService from '../services/ImportTransactionsService';
 
 const transactionsRouter = Router();
+const transactionRepository = new TransactionsRepository();
 
 transactionsRouter.get('/', async (request, response) => {
   return response.json({ ok: 'rudiney get' });
@@ -44,8 +47,15 @@ transactionsRouter.post('/', async (request, response) => {
 
   validate(title, type, value, category);
 
-  const transaction = 
-
+  const transactionService = new CreateTransactionService(
+    transactionRepository,
+  );
+  const transaction = transactionService.execute({
+    title,
+    type,
+    value,
+    category,
+  });
 
   return response.json({ ok: 'rudiney post' });
 });
