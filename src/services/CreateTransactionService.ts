@@ -1,4 +1,5 @@
 // import AppError from '../errors/AppError';
+import { getRepository } from 'typeorm';
 import Transaction from '../models/Transaction';
 import TransactionsRepository from '../repositories/TransactionsRepository';
 import AppError from '../errors/AppError';
@@ -6,7 +7,7 @@ import Category from '../models/Category';
 
 interface TransactionDTO {
   title: string;
-  type: string;
+  type: 'income' | 'outcome';
   value: number;
   category: string;
 }
@@ -35,11 +36,29 @@ class CreateTransactionService {
     }
 
     // validar Categoria
-    // const categoryRepository = getRepository(Category);
+    const categoryRepository = getRepository(Category);
+    let categoryFromDB = await categoryRepository.findOne({
+      title: category,
+    });
+    if (!categoryFromDB) {
+      categoryFromDB = categoryRepository.create({
+        title: category,
+      });
+    }
 
     // criar transação
-    // const transaction = this.transactionRespository.create({});
-    return null;
+    let transaction = this.transactionRespository.create({
+      title,
+      type,
+      value,
+      categoryId: categoryFromDB.id,
+    });
+
+    transaction = await this.transactionRespository.save(transaction);
+
+    transaction.category = categoryFromDB;
+
+    return transaction;
   }
 }
 

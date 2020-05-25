@@ -26,7 +26,7 @@ class Transaction {
   @Column()
   categoryId: string;
 
-  @ManyToOne(() => Category)
+  @ManyToOne(() => Category) // 'n' Transactions can be related with 1 Category; And 1 Category can be related with 'n' Transactions
   @JoinColumn({ name: 'categoryId' })
   category: Category;
 
