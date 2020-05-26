@@ -1,32 +1,36 @@
 import { Router } from 'express';
 
+import { getCustomRepository } from 'typeorm';
 import AppError from '../errors/AppError';
 
 import TransactionsRepository from '../repositories/TransactionsRepository';
 import CreateTransactionService from '../services/CreateTransactionService';
-import Transaction from '../models/Transaction';
+// import Transaction from '../models/Transaction';
+// import Transaction from '../models/Transaction';
 // import DeleteTransactionService from '../services/DeleteTransactionService';
 // import ImportTransactionsService from '../services/ImportTransactionsService';
 
+interface TransactionToValidate {
+  title: string;
+  type: 'income' | 'outcome';
+  value: number;
+  category: string;
+}
 const transactionsRouter = Router();
-const transactionRepository = new TransactionsRepository();
+
+// const transactionRepository = new TransactionsRepository();
 
 transactionsRouter.get('/', async (request, response) => {
   return response.json({ ok: 'rudiney get' });
 });
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-function validate(
-  title: string,
-  type: string,
-  value: number,
-  category: string,
-) {
+function validate({ title, type, value, category }: TransactionToValidate) {
   if (title === undefined || title === '') {
     throw new AppError('Title is required');
   }
 
-  if (type === undefined || type === '') {
+  if (type === undefined) {
     throw new AppError('Title is required');
   }
 
@@ -37,7 +41,7 @@ function validate(
   if (value === undefined || value === 0) {
     throw new AppError('Value is required');
   }
-  if (category === undefined || category === '') {
+  if (category === undefined) {
     throw new AppError('Category is required');
   }
 }
@@ -45,19 +49,19 @@ function validate(
 transactionsRouter.post('/', async (request, response) => {
   const { title, type, value, category } = request.body;
 
-  validate(title, type, value, category);
-
+  validate({ title, type, value, category });
+  const transactionRepository = getCustomRepository(TransactionsRepository);
   const transactionService = new CreateTransactionService(
     transactionRepository,
   );
-  const transaction = transactionService.execute({
+  const transaction = await transactionService.execute({
     title,
     type,
     value,
     category,
   });
 
-  return response.json({ ok: 'rudiney post' });
+  return response.json({ transaction });
 });
 
 transactionsRouter.delete('/:id', async (request, response) => {

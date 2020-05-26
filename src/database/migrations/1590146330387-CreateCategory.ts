@@ -2,7 +2,7 @@ import { MigrationInterface, QueryRunner, Table } from 'typeorm';
 
 export default class CreateCategory1590146330387 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    queryRunner.createTable(
+    await queryRunner.createTable(
       new Table({
         name: 'category',
         columns: [
@@ -18,12 +18,12 @@ export default class CreateCategory1590146330387 implements MigrationInterface {
             type: 'varchar',
           },
           {
-            name: 'createAt',
+            name: 'createdAt',
             type: 'timestamp',
             default: 'now()',
           },
           {
-            name: 'updateAt',
+            name: 'updatedAt',
             type: 'timestamp',
             default: 'now()',
           },
@@ -33,6 +33,6 @@ export default class CreateCategory1590146330387 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    queryRunner.dropTable('category');
+    await queryRunner.dropTable('category');
   }
 }

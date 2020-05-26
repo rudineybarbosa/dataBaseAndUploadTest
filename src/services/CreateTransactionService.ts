@@ -13,10 +13,10 @@ interface TransactionDTO {
 }
 
 class CreateTransactionService {
-  private transactionRespository: TransactionsRepository;
+  private transactionRepository: TransactionsRepository;
 
-  constructor(transactionRespository: TransactionsRepository) {
-    this.transactionRespository = transactionRespository;
+  constructor(transactionRepository: TransactionsRepository) {
+    this.transactionRepository = transactionRepository;
   }
 
   public async execute({
@@ -28,7 +28,7 @@ class CreateTransactionService {
     // TODO
     // verificar saldo
     if (type === 'outcome') {
-      const balance = await this.transactionRespository.getBalance();
+      const balance = await this.transactionRepository.getBalance();
 
       if (balance.total < value) {
         throw new AppError('Saldo insuficiente');
@@ -37,26 +37,29 @@ class CreateTransactionService {
 
     // validar Categoria
     const categoryRepository = getRepository(Category);
-    let categoryFromDB = await categoryRepository.findOne({
+    let categoryObj = await categoryRepository.findOne({
       title: category,
     });
-    if (!categoryFromDB) {
-      categoryFromDB = categoryRepository.create({
+    if (!categoryObj) {
+      categoryObj = categoryRepository.create({
         title: category,
       });
+
+      categoryObj = await categoryRepository.save(categoryObj);
     }
 
+    // const transRepos = getRepository(Transaction);
     // criar transação
-    let transaction = this.transactionRespository.create({
+    let transaction = this.transactionRepository.create({
       title,
       type,
       value,
-      categoryId: categoryFromDB.id,
+      categoryId: categoryObj.id,
     });
 
-    transaction = await this.transactionRespository.save(transaction);
+    transaction = await this.transactionRepository.save(transaction);
 
-    transaction.category = categoryFromDB;
+    transaction.category = categoryObj;
 
     return transaction;
   }
