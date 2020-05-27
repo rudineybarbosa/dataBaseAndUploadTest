@@ -24,11 +24,12 @@ export default class CreateTransaction1590146300118
           },
           {
             name: 'value',
-            type: 'numeric', // postgres data type
+            type: 'integer', // postgres data type
           },
           {
             name: 'categoryId',
             type: 'uuid',
+            isNullable: true,
           },
           {
             name: 'createdAt',

@@ -5,8 +5,7 @@ import AppError from '../errors/AppError';
 
 import TransactionsRepository from '../repositories/TransactionsRepository';
 import CreateTransactionService from '../services/CreateTransactionService';
-// import Transaction from '../models/Transaction';
-// import Transaction from '../models/Transaction';
+import DeleteTransactionService from '../services/DeleteTransactionService';
 // import DeleteTransactionService from '../services/DeleteTransactionService';
 // import ImportTransactionsService from '../services/ImportTransactionsService';
 
@@ -21,7 +20,11 @@ const transactionsRouter = Router();
 // const transactionRepository = new TransactionsRepository();
 
 transactionsRouter.get('/', async (request, response) => {
-  return response.json({ ok: 'rudiney get' });
+  const transactionRepository = getCustomRepository(TransactionsRepository);
+  const transactions = await transactionRepository.allWithCascadeRelations();
+  const balance = await transactionRepository.getBalance();
+
+  return response.json({ transactions, balance });
 });
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -50,23 +53,28 @@ transactionsRouter.post('/', async (request, response) => {
   const { title, type, value, category } = request.body;
 
   validate({ title, type, value, category });
-  const transactionRepository = getCustomRepository(TransactionsRepository);
-  const transactionService = new CreateTransactionService(
-    transactionRepository,
-  );
-  const transaction = await transactionService.execute({
+
+  const transactionService = new CreateTransactionService();
+
+  const responseDTO = await transactionService.execute({
     title,
     type,
     value,
     category,
   });
 
-  return response.json({ transaction });
+  return response.json({ responseDTO });
 });
 
 transactionsRouter.delete('/:id', async (request, response) => {
-  return response.json({ ok: 'rudiney delete' });
   // TODO
+  const { id } = request.params;
+
+  const deleteTransaction = new DeleteTransactionService();
+
+  await deleteTransaction.execute(id);
+
+  return response.status(204).send();
 });
 
 transactionsRouter.post('/import', async (request, response) => {

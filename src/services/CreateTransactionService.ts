@@ -1,8 +1,7 @@
-// import AppError from '../errors/AppError';
-import { getRepository } from 'typeorm';
+import { getRepository, getCustomRepository } from 'typeorm';
+import AppError from '../errors/AppError';
 import Transaction from '../models/Transaction';
 import TransactionsRepository from '../repositories/TransactionsRepository';
-import AppError from '../errors/AppError';
 import Category from '../models/Category';
 
 interface TransactionDTO {
@@ -12,11 +11,22 @@ interface TransactionDTO {
   category: string;
 }
 
+interface Balance {
+  income: number;
+  outcome: number;
+  total: number;
+}
+
+interface ResponseDTO {
+  transaction: Transaction;
+  balance: Balance;
+}
+
 class CreateTransactionService {
   private transactionRepository: TransactionsRepository;
 
-  constructor(transactionRepository: TransactionsRepository) {
-    this.transactionRepository = transactionRepository;
+  constructor() {
+    this.transactionRepository = getCustomRepository(TransactionsRepository);
   }
 
   public async execute({
@@ -24,14 +34,15 @@ class CreateTransactionService {
     type,
     value,
     category,
-  }: TransactionDTO): Promise<Transaction | null> {
+  }: TransactionDTO): Promise<ResponseDTO | null> {
     // TODO
     // verificar saldo
-    if (type === 'outcome') {
-      const balance = await this.transactionRepository.getBalance();
+    let balance: Balance = { income: 0, outcome: 0, total: 0 };
+    balance = await this.transactionRepository.getBalance();
 
+    if (type === 'outcome') {
       if (balance.total < value) {
-        throw new AppError('Saldo insuficiente');
+        throw new AppError('Insufficients funds');
       }
     }
 
@@ -58,10 +69,13 @@ class CreateTransactionService {
     });
 
     transaction = await this.transactionRepository.save(transaction);
+    balance = await this.transactionRepository.getBalance();
 
     transaction.category = categoryObj;
 
-    return transaction;
+    delete transaction.categoryId;
+
+    return { transaction, balance };
   }
 }
 

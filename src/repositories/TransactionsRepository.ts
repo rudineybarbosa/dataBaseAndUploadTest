@@ -19,7 +19,7 @@ class TransactionsRepository extends Repository<Transaction> {
 
   public async getBalance(): Promise<Balance> {
     // TODO
-    this.transactions = await this.all();
+    this.transactions = await this.allWithoutCascadeRelations();
     const income = this.transactions.reduce(
       (accumulator, currentTransacation: Transaction) => {
         let value = 0;
@@ -27,7 +27,7 @@ class TransactionsRepository extends Repository<Transaction> {
           value = currentTransacation.value;
         }
 
-        return accumulator + Number(value);
+        return accumulator + value;
       },
       0,
     );
@@ -39,7 +39,7 @@ class TransactionsRepository extends Repository<Transaction> {
           value = currentTransacation.value;
         }
 
-        return accumulator + Number(value);
+        return accumulator + value;
       },
       0,
     );
@@ -55,10 +55,22 @@ class TransactionsRepository extends Repository<Transaction> {
     return balance;
   }
 
-  public async all(): Promise<Transaction[]> {
+  public async allWithCascadeRelations(): Promise<Transaction[]> {
+    // The `relations` option includes Category object inner transaction
+    const transactions = await this.find({ relations: ['category'] });
+
+    return transactions;
+  }
+
+  public async allWithoutCascadeRelations(): Promise<Transaction[]> {
+    // The `relations` option includes Category object inner transaction
     const transactions = await this.find();
 
     return transactions;
+  }
+
+  public async deleteById(id: string): Promise<void> {
+    await this.delete(id);
   }
 }
 
