@@ -1,12 +1,13 @@
 import { Router } from 'express';
 
 import { getCustomRepository } from 'typeorm';
+import multer from 'multer';
 import AppError from '../errors/AppError';
+import uploadConfig from '../util/upload';
 
 import TransactionsRepository from '../repositories/TransactionsRepository';
 import CreateTransactionService from '../services/CreateTransactionService';
 import DeleteTransactionService from '../services/DeleteTransactionService';
-// import DeleteTransactionService from '../services/DeleteTransactionService';
 // import ImportTransactionsService from '../services/ImportTransactionsService';
 
 interface TransactionToValidate {
@@ -16,8 +17,7 @@ interface TransactionToValidate {
   category: string;
 }
 const transactionsRouter = Router();
-
-// const transactionRepository = new TransactionsRepository();
+const upload = multer(uploadConfig);
 
 transactionsRouter.get('/', async (request, response) => {
   const transactionRepository = getCustomRepository(TransactionsRepository);
@@ -67,7 +67,6 @@ transactionsRouter.post('/', async (request, response) => {
 });
 
 transactionsRouter.delete('/:id', async (request, response) => {
-  // TODO
   const { id } = request.params;
 
   const deleteTransaction = new DeleteTransactionService();
@@ -77,9 +76,14 @@ transactionsRouter.delete('/:id', async (request, response) => {
   return response.status(204).send();
 });
 
-transactionsRouter.post('/import', async (request, response) => {
-  // TODO
-  return response.json({ ok: 'rudiney import' });
-});
+transactionsRouter.post(
+  '/import',
+  upload.single('import_template'),
+  async (request, response) => {
+    console.log(request.file);
+
+    return response.json({ ok: 'rudiney import' });
+  },
+);
 
 export default transactionsRouter;
