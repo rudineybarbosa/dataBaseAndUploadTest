@@ -8,7 +8,7 @@ import uploadConfig from '../util/upload';
 import TransactionsRepository from '../repositories/TransactionsRepository';
 import CreateTransactionService from '../services/CreateTransactionService';
 import DeleteTransactionService from '../services/DeleteTransactionService';
-// import ImportTransactionsService from '../services/ImportTransactionsService';
+import ImportTransactionsService from '../services/ImportTransactionsService';
 
 interface TransactionToValidate {
   title: string;
@@ -82,6 +82,8 @@ transactionsRouter.post(
   async (request, response) => {
     console.log(request.file);
 
+    const importTransactionsService = new ImportTransactionsService();
+    importTransactionsService.execute(request.file);
     return response.json({ ok: 'rudiney import' });
   },
 );
