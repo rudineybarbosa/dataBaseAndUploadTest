@@ -24,7 +24,7 @@ export default class CreateTransaction1590146300118
           },
           {
             name: 'value',
-            type: 'integer', // postgres data type
+            type: 'double precision', // postgres data type
           },
           {
             name: 'categoryId',

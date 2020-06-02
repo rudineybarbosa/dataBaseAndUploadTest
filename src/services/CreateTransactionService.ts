@@ -22,11 +22,40 @@ interface ResponseDTO {
   balance: Balance;
 }
 
+interface TransactionToValidate {
+  title: string;
+  type: 'income' | 'outcome';
+  value: number;
+  category: string;
+}
+
 class CreateTransactionService {
   private transactionRepository: TransactionsRepository;
 
   constructor() {
     this.transactionRepository = getCustomRepository(TransactionsRepository);
+  }
+
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  public validate({ title, type, value, category }: TransactionToValidate) {
+    if (title === undefined || title === '') {
+      throw new AppError('Title is required');
+    }
+
+    if (type === undefined) {
+      throw new AppError('Title is required');
+    }
+
+    if (type !== 'income' && type !== 'outcome') {
+      throw new AppError('Type invalid');
+    }
+
+    if (value === undefined || value === 0) {
+      throw new AppError('Value is required');
+    }
+    if (category === undefined) {
+      throw new AppError('Category is required');
+    }
   }
 
   public async execute({

@@ -7,6 +7,7 @@ class ImportTransactionsService {
 
     console.log(lines);
 
+
     return null;
   }
 }
