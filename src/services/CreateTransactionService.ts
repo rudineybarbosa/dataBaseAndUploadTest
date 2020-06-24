@@ -6,7 +6,7 @@ import Category from '../models/Category';
 
 interface TransactionDTO {
   title: string;
-  type: 'income' | 'outcome';
+  type: string;
   value: number;
   category: string;
 }
@@ -24,7 +24,7 @@ interface ResponseDTO {
 
 interface TransactionToValidate {
   title: string;
-  type: 'income' | 'outcome';
+  type: string;
   value: number;
   category: string;
 }
@@ -58,28 +58,12 @@ class CreateTransactionService {
     }
   }
 
-  public async execute({
-    title,
-    type,
-    value,
-    category,
-  }: TransactionDTO): Promise<ResponseDTO | null> {
-    // TODO
-    // verificar saldo
-    let balance: Balance = { income: 0, outcome: 0, total: 0 };
-    balance = await this.transactionRepository.getBalance();
-
-    if (type === 'outcome') {
-      if (balance.total < value) {
-        throw new AppError('Insufficients funds');
-      }
-    }
-
-    // validar Categoria
+  public async validateCategory(category: string): Promise<Category> {
     const categoryRepository = getRepository(Category);
     let categoryObj = await categoryRepository.findOne({
       title: category,
     });
+
     if (!categoryObj) {
       categoryObj = categoryRepository.create({
         title: category,
@@ -88,23 +72,42 @@ class CreateTransactionService {
       categoryObj = await categoryRepository.save(categoryObj);
     }
 
-    // const transRepos = getRepository(Transaction);
+    return categoryObj;
+  }
+
+  public async execute({
+    title,
+    type,
+    value,
+    category,
+  }: TransactionDTO): Promise<Transaction> {
+    // eslint-disable-next-line prettier/prettier
+
+    this.validate({ title, type, value, category });
+
+    // verificar saldo
+    const { total } = await this.transactionRepository.getBalance();
+
+    if (type === 'outcome' && total < value) {
+      throw new AppError('Insufficients funds');
+    }
+
+    // validar Categoria
+    const categoryObj = await this.validateCategory(category);
+
     // criar transação
     let transaction = this.transactionRepository.create({
       title,
       type,
       value,
-      categoryId: categoryObj.id,
+      category: categoryObj,
     });
 
     transaction = await this.transactionRepository.save(transaction);
-    balance = await this.transactionRepository.getBalance();
-
-    transaction.category = categoryObj;
 
     delete transaction.categoryId;
 
-    return { transaction, balance };
+    return transaction;
   }
 }
 

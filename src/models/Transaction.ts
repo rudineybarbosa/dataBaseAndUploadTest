@@ -9,7 +9,7 @@ import {
 } from 'typeorm';
 import Category from './Category';
 
-@Entity('transaction')
+@Entity('transactions')
 class Transaction {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -18,15 +18,15 @@ class Transaction {
   title: string;
 
   @Column()
-  type: 'income' | 'outcome';
+  type: string;
 
-  @Column()
+  @Column('decimal')
   value: number;
 
   @Column({ select: false }) // avoid return this column
   categoryId: string;
 
-  @ManyToOne(() => Category) // 'n' Transactions can be related with 1 Category; And 1 Category can be related with 'n' Transactions
+  @ManyToOne(() => Category, { eager: true }) // 'n' Transactions can be related with 1 Category; And 1 Category can be related with 'n' Transactions
   @JoinColumn({ name: 'categoryId' })
   category: Category;
 

@@ -19,29 +19,30 @@ class TransactionsRepository extends Repository<Transaction> {
 
   public async getBalance(): Promise<Balance> {
     // TODO
-    this.transactions = await this.allWithoutCascadeRelations();
-    const income = this.transactions.reduce(
-      (accumulator, currentTransacation: Transaction) => {
-        let value = 0;
-        if (currentTransacation.type === 'income') {
-          value = currentTransacation.value;
+    this.transactions = await this.find();
+    // eslint-disable-next-line prettier/prettier
+
+    const { income, outcome } = this.transactions.reduce(
+      (accumulator, currentTransacation) => {
+        switch (currentTransacation.type) {
+          case 'income':
+            accumulator.income += Number(currentTransacation.value);
+            break;
+
+          case 'outcome':
+            accumulator.outcome += Number(currentTransacation.value);
+            break;
+
+          default:
+            break;
         }
-
-        return accumulator + value;
+        return accumulator;
       },
-      0,
-    );
-
-    const outcome = this.transactions.reduce(
-      (accumulator, currentTransacation: Transaction) => {
-        let value = 0;
-        if (currentTransacation.type === 'outcome') {
-          value = currentTransacation.value;
-        }
-
-        return accumulator + value;
+      {
+        income: 0,
+        outcome: 0,
+        total: 0,
       },
-      0,
     );
 
     const total = income - outcome;
@@ -55,22 +56,12 @@ class TransactionsRepository extends Repository<Transaction> {
     return balance;
   }
 
+  // JUST TO TEST find() with relactions
   public async allWithCascadeRelations(): Promise<Transaction[]> {
     // The `relations` option includes Category object inner transaction
     const transactions = await this.find({ relations: ['category'] });
 
     return transactions;
-  }
-
-  public async allWithoutCascadeRelations(): Promise<Transaction[]> {
-    // The `relations` option includes Category object inner transaction
-    const transactions = await this.find();
-
-    return transactions;
-  }
-
-  public async deleteById(id: string): Promise<void> {
-    await this.delete(id);
   }
 }
 
