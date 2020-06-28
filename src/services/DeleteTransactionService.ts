@@ -19,7 +19,7 @@ class DeleteTransactionService {
       throw new AppError('Transaction not found');
     }
 
-    this.transactionsRepository.deleteById(id);
+    this.transactionsRepository.delete(id);
   }
 }
 
